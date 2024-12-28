@@ -2,6 +2,8 @@ package com.example.todolist
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import com.example.todolist.databinding.ActivityUserDetailsBinding
 import com.google.firebase.Firebase
@@ -41,6 +43,11 @@ class UserDetailsActivity : AppCompatActivity() {
         }
 
         setupClickListeners()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            startActivity(Intent(this, AddTaskActivity::class.java))
+            finish() // Finish SplashActivity so it doesn't stay in the back stack
+        }, 4000) // 2000 ms delay for splash screen
     }
 
     private fun setupClickListeners() {

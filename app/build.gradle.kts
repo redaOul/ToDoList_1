@@ -58,11 +58,12 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
 
     // Firebase BoM (Bill of Materials)
-    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
     // Firebase features (no version numbers needed with BoM)
     implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.android.gms:play-services-auth") // I remove the version ctrl + z
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-database")
 }
