@@ -1,4 +1,4 @@
-package com.example.todolist
+package com.example.todolist.model
 
 data class Task(
     val taskId: String = "", // Unique ID for the task

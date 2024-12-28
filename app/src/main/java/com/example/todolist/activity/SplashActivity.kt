@@ -1,10 +1,11 @@
-package com.example.todolist
+package com.example.todolist.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import com.example.todolist.R
 
 class SplashActivity : AppCompatActivity() {
 
@@ -12,10 +13,9 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        // Delay and then move to the login screen
         Handler(Looper.getMainLooper()).postDelayed({
             startActivity(Intent(this, AuthActivity::class.java))
-            finish() // Finish SplashActivity so it doesn't stay in the back stack
-        }, 2000) // 2000 ms delay for splash screen
+            finish()
+        }, 2000)
     }
 }

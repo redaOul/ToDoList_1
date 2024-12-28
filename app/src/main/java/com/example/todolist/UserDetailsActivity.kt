@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import com.example.todolist.activity.AuthActivity
 import com.example.todolist.databinding.ActivityUserDetailsBinding
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -48,6 +49,9 @@ class UserDetailsActivity : AppCompatActivity() {
             startActivity(Intent(this, AddTaskActivity::class.java))
             finish() // Finish SplashActivity so it doesn't stay in the back stack
         }, 4000) // 2000 ms delay for splash screen
+
+        // I get redirected to the AddTaskActivity even click on SignOutBtn
+
     }
 
     private fun setupClickListeners() {

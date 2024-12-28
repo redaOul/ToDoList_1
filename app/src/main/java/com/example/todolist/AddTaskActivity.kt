@@ -2,12 +2,11 @@ package com.example.todolist
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.todolist.databinding.ActivityAddTaskBinding
+import com.example.todolist.model.Task
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -68,12 +67,15 @@ class AddTaskActivity : AppCompatActivity() {
                 binding.textView.text = "Task not saved!"
             }
     }
-
     private fun readTaskFrom(){
         val database = Firebase.database("https://todolistv0-default-rtdb.europe-west1.firebasedatabase.app/")
         val tasksRef = database.getReference("tasks")
+        val currentUserId = auth.currentUser?.uid ?: ""
 
-        tasksRef.addValueEventListener(object : ValueEventListener {
+        //  filter the tasks based on the userId property
+        val query = tasksRef.orderByChild("userId").equalTo(currentUserId)
+
+        query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val tasks = mutableListOf<Task>()
                 for (taskSnapshot in dataSnapshot.children) {
@@ -89,20 +91,3 @@ class AddTaskActivity : AppCompatActivity() {
         })
     }
 }
-
-// [START read_message]
-// Read from the database
-//        myRef.addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                val value = dataSnapshot.getValue<String>()
-//                Log.d(TAG, "Value is: $value")
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // Failed to read value
-//                Log.w(TAG, "Failed to read value.", error.toException())
-//            }
-//        })
-// [END read_message]
