@@ -149,7 +149,7 @@ class AuthActivity : AppCompatActivity() {
     }
 
     private fun redirectToUserDetails() {
-        startActivity(Intent(this, UserDetailsActivity::class.java))
+        startActivity(Intent(this, HomeActivity::class.java))
         finish()
     }
 }

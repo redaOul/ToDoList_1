@@ -72,4 +72,10 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-database")
+
+    // Circle ImageView dependency
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
+    // Image loading dependency
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }
