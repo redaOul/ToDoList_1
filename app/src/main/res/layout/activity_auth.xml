@@ -23,7 +23,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/header_background"
+                android:background="@drawable/auth_header_background"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="24dp">
