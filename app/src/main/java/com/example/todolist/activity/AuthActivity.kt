@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.core.content.ContextCompat
 import com.example.todolist.databinding.ActivityAuthBinding
 import com.example.todolist.R
-import com.example.todolist.UserDetailsActivity
 import com.example.todolist.repository.AuthRepository
 import com.example.todolist.utils.ValidationUtils
 

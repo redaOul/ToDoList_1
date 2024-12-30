@@ -38,4 +38,18 @@ object ValidationUtils {
         }
         return Pair(true, null)
     }
+
+    // format userName for avatar generation
+    fun formatUserNameForApi(fullName: String): String {
+        val nameParts = if (!fullName.contains(" ")) {
+            // If no spaces, attempt to split by uppercase letters (e.g., "RedaOul" → ["Reda", "Oul"])
+            fullName.split(Regex("(?=[A-Z])")).filter { it.isNotBlank() }
+        } else {
+            // If spaces are present, split by them
+            fullName.split(" ").filter { it.isNotBlank() }
+        }
+
+        // Capitalize each part and join with "+"
+        return nameParts.joinToString("+") { it.trim().replaceFirstChar { it.uppercase() } }
+    }
 }

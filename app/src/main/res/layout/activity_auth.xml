@@ -92,7 +92,7 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Enter email or username"
+                        android:hint="Enter email"
                         app:boxStrokeColor="@color/red_500">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -106,7 +106,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="Password"
+                        android:hint="Enter password"
                         android:orientation="horizontal"
                         app:boxStrokeColor="@color/red_500"
                         app:endIconMode="password_toggle">

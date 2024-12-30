@@ -1,5 +1,6 @@
 package com.example.todolist.repository
 
+import com.example.todolist.utils.AvatarUtils
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -49,43 +50,13 @@ class AuthRepository(private val auth: FirebaseAuth) {
             }
     }
 
-    public fun getCurrentUser() = auth.currentUser
-
-    private fun handleFirebaseException(exception: Exception?): String {
-        // password and email exception generate own message not the customized one
-        return when (exception) {
-            is FirebaseAuthInvalidCredentialsException -> "Bad credentials"
-            is FirebaseAuthUserCollisionException -> "Email already in use"
-            is FirebaseAuthWeakPasswordException -> "Password too weak"
-            else -> "An unexpected error occurred :(\nPlease try again later"
-        }
-    }
-
-    private fun formatUserNameForApi(fullName: String): String {
-        val nameParts = if (!fullName.contains(" ")) {
-            // If no spaces, attempt to split by uppercase letters (e.g., "RedaOul" → ["Reda", "Oul"])
-            fullName.split(Regex("(?=[A-Z])")).filter { it.isNotBlank() }
-        } else {
-            // If spaces are present, split by them
-            fullName.split(" ").filter { it.isNotBlank() }
-        }
-
-        // Capitalize each part and join with "+"
-        return nameParts.joinToString("+") { it.trim().replaceFirstChar { it.uppercase() } }
-    }
-
-    private fun getAvatarApiUrl(userName: String): String {
-        val formattedName = formatUserNameForApi(userName)
-        return "https://ui-avatars.com/api/?background=random&name=$formattedName&rounded=true&bold=true"
-    }
-
     private fun saveUserDetails(userName: String, callback: (Boolean) -> Unit) {
 
         val currentUserId = getCurrentUser()?.uid ?: "not authenticated"
 
         val userDetails = hashMapOf(
             "bio" to "Update your bio...",
-            "avatar" to getAvatarApiUrl(userName)
+            "avatar" to AvatarUtils.getAvatarApiUrl(userName)
         )
 
         val database = Firebase.database("https://todolistv0-default-rtdb.europe-west1.firebasedatabase.app/")
@@ -101,5 +72,15 @@ class AuthRepository(private val auth: FirebaseAuth) {
             }
     }
 
+    private fun getCurrentUser() = auth.currentUser
 
+    private fun handleFirebaseException(exception: Exception?): String {
+        // password and email exception generate own message not the customized one
+        return when (exception) {
+            is FirebaseAuthInvalidCredentialsException -> "Bad credentials"
+            is FirebaseAuthUserCollisionException -> "Email already in use"
+            is FirebaseAuthWeakPasswordException -> "Password too weak"
+            else -> "An unexpected error occurred :(\nPlease try again later"
+        }
+    }
 }
