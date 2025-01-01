@@ -52,4 +52,11 @@ object ValidationUtils {
         // Capitalize each part and join with "+"
         return nameParts.joinToString("+") { it.trim().replaceFirstChar { it.uppercase() } }
     }
+
+    // validation for adding a list
+    fun validateAddListInput(name: String): Pair<Boolean, String?>{
+        if (name.isEmpty()) return Pair(false, "Name cannot be empty")
+        if (name.length >= 20) return Pair(false, "Name cannot be longer than 20 characters")
+        else return Pair(true, null)
+    }
 }
