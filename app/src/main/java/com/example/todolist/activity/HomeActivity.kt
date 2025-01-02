@@ -1,30 +1,25 @@
 package com.example.todolist.activity
 
-//import android.content.Intent
-import android.graphics.Color
-import android.graphics.Typeface
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.todolist.R
 import com.example.todolist.databinding.ActivityHomeBinding
+import com.example.todolist.databinding.ItemListCardBinding
 import com.example.todolist.databinding.ItemTaskCardBinding
 import com.example.todolist.model.Task
+import com.example.todolist.model.UserList
 import com.example.todolist.repository.HomeRepository
 import com.example.todolist.utils.AvatarUtils
 import com.google.firebase.auth.FirebaseAuth
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
-    private lateinit var taskRepository: HomeRepository
+    private lateinit var homeRepository: HomeRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,28 +27,31 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Initialize Firebase Auth
-        taskRepository = HomeRepository(FirebaseAuth.getInstance())
-
-//        auth = Firebase.auth
-//        val user = auth.currentUser ?: return
+        homeRepository = HomeRepository(FirebaseAuth.getInstance())
 
         loadUserProfile()
         getUserLists()
         getUserTasks()
 
-        // Set up edit profile button click
-        binding.editProfile.setOnClickListener {
+        setupClickListeners()
+    }
+
+    fun setupClickListeners(){
+        binding.apply {
+            // Set up edit profile button click
+            editProfile.setOnClickListener {
 //            startActivity(Intent(this, EditProfileActivity::class.java))
-        }
+            }
 
-        // set up see all lists button click
-        binding.seeAllButton.setOnClickListener {
-//            startActivity(Intent(this, AllListsActivity::class.java))
-        }
+            // set up see all lists button click
+            seeAllButton.setOnClickListener {
+                startActivity(Intent(this@HomeActivity, ListsActivity::class.java))
+            }
 
-        // set up add task button click
-        binding.addTaskButton.setOnClickListener {
+            // set up add task button click
+            addTaskButton.setOnClickListener {
 //            startActivity(Intent(this, AddTaskActivity::class.java))
+            }
         }
     }
 
@@ -61,7 +59,7 @@ class HomeActivity : AppCompatActivity() {
 //    first section logic
 //    ========================================
     private fun loadUserProfile() {
-        taskRepository.getUserDetails { name, bio, avatar ->
+        homeRepository.getUserDetails { name, bio, avatar ->
             updateProfileUI(name, bio)
             AvatarUtils.loadAvatarIntoImageView(avatar, binding.profileImage)
         }
@@ -78,66 +76,57 @@ class HomeActivity : AppCompatActivity() {
 //    second section logic
 //    ========================================
     private fun getUserLists() {
-        taskRepository.getUserLists { lists ->
+        homeRepository.getUserLists { lists ->
+            Log.i("Lists", "Lists: $lists")
             updateListsUI(lists)
         }
     }
 
-    private fun updateListsUI(lists: List<Pair<String, String>>) {
-        binding.ListsContainer.removeAllViews()
+    private fun updateListsUI(lists: List<UserList>) {
+        val adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-        lists.forEach { (listKey, listName) ->
-            val cardView = createListCard(listKey, listName)
-            binding.ListsContainer.addView(cardView)
+            inner class ListViewHolder(val binding: ItemListCardBinding) : RecyclerView.ViewHolder(binding.root) {
+                init {
+                    // Set click listener in the ViewHolder initialization
+                    itemView.setOnClickListener {
+                        val position = adapterPosition
+                        if (position != RecyclerView.NO_POSITION) {
+                            val clickedList = lists[position]
+                            redirectToTasksList(clickedList.id)
+                        }
+                    }
+                }
+            }
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+                val binding = ItemListCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                return ListViewHolder(binding)
+            }
+
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                val list = lists[position]
+                (holder as ListViewHolder).binding.apply {
+                    listName.text = list.name
+                }
+            }
+
+            override fun getItemCount(): Int = lists.size
         }
+
+        binding.listsRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.listsRecyclerView.adapter = adapter
     }
 
-    private fun createListCard(listKey: String, listName: String): CardView {
-        val cardView = CardView(this).apply {
-            setCardBackgroundColor(ContextCompat.getColor(context, R.color.purple))
-            cardElevation = 2f
-            radius = 15f
-        }
-
-        val textView = TextView(this).apply {
-            text = listName
-            setTextColor(Color.WHITE)
-            setPadding(16, 16, 16, 16)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-            setTypeface(null, Typeface.BOLD)
-        }
-
-        cardView.addView(textView)
-
-        cardView.setOnClickListener {
-//        val intent = Intent(this@HomeActivity, TasksActivity::class.java)
-//        intent.putExtra("LIST_ID", listKey)
-//        intent.putExtra("LIST_NAME", listName)
-//        startActivity(intent)
-            Log.e("HomeActivity", "List clicked: $listName | $listKey")
-        }
-
-        return cardView
-
-//            cardView.layoutParams = LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.MATCH_PARENT,
-//                LinearLayout.LayoutParams.WRAP_CONTENT
-//            )
-//            cardView.addView(textView)
-//
-//            cardView.setOnClickListener {
-//                redirectMethod(listKey, listName)
-//            }
-//
-//            binding.ListsContainer.addView(cardView)
-//        }
+    private fun redirectToTasksList(id: String){
+        val intent = Intent(this, TasksActivity::class.java)
+        intent.putExtra("ListId", id)
+        startActivity(intent)
     }
 
 //    ========================================
 //    third section logic
 //    ========================================
     private fun getUserTasks() {
-        taskRepository.getUserTasks { tasks ->
+        homeRepository.getUserTasks { tasks ->
             updateUpComingTasksUI(tasks)
         }
     }

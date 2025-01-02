@@ -126,25 +126,14 @@
             android:orientation="vertical"
             android:paddingHorizontal="22dp">
 
-            <!-- Dynamically added CardViews will go here -->
-
-            <androidx.cardview.widget.CardView
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/listsRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="@color/purple"
-                app:cardCornerRadius="15dp"
-                app:cardElevation="2dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:textStyle="bold"
-                    android:text="My Tasks"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp" />
-            </androidx.cardview.widget.CardView>
+                android:paddingVertical="8dp"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"
+                tools:listitem="@layout/item_list_card" />
 
         </LinearLayout>
 

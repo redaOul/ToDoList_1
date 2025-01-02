@@ -94,7 +94,7 @@ class ListsActivity : AppCompatActivity() {
             override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
                 val list = lists[position]
                 (holder as ListViewHolder).binding.apply {
-                    taskName.text = list.name
+                    listName.text = list.name
                 }
             }
 

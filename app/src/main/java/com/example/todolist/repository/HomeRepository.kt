@@ -2,6 +2,7 @@ package com.example.todolist.repository
 
 import android.util.Log
 import com.example.todolist.model.Task
+import com.example.todolist.model.UserList
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -28,17 +29,16 @@ class HomeRepository (private val auth: FirebaseAuth) {
         })
     }
 
-    fun getUserLists(callback: (List<Pair<String, String>>) -> Unit){
+    fun getUserLists(callback: (List<UserList>) -> Unit) {
         val userListsRef = database.getReference("lists").child(user.uid)
 
         userListsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val lists = dataSnapshot.children.mapNotNull { listSnapshot ->
+                val lists = dataSnapshot.children.take(4).map { listSnapshot ->
                     val listKey = listSnapshot.key
                     val listName = listSnapshot.getValue(String::class.java)
-                    if (listKey != null && listName != null) Pair(listKey, listName)
-                    else null
-                }.take(4) // Limit to only 4 lists
+                    UserList(listKey ?: "", listName ?: "")
+                }
                 callback(lists)
             }
 
