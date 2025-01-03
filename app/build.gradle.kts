@@ -71,11 +71,14 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth") // I remove the version ctrl + z
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
-    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-database-ktx")
 
     // Circle ImageView dependency
     implementation("de.hdodenhof:circleimageview:3.1.0")
 
     // Image loading dependency
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // Kotlin Coroutines
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android")
 }
