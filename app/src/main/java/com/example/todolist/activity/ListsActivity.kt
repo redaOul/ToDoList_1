@@ -81,7 +81,7 @@ class ListsActivity : AppCompatActivity() {
                         val position = adapterPosition
                         if (position != RecyclerView.NO_POSITION) {
                             val clickedList = lists[position]
-                            redirectToTasksList(clickedList.id)
+                            redirectToTasksList(clickedList.id, clickedList.name)
                         }
                     }
                 }
@@ -105,9 +105,10 @@ class ListsActivity : AppCompatActivity() {
         binding.listsRecyclerView.adapter = adapter
     }
 
-    private fun redirectToTasksList(id: String){
+    private fun redirectToTasksList(id: String, listName: String){
         val intent = Intent(this, TasksActivity::class.java)
-        intent.putExtra("ListId", id)
+        intent.putExtra("listId", id)
+        intent.putExtra("listName", listName)
         startActivity(intent)
     }
 }

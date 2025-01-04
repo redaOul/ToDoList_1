@@ -2,7 +2,6 @@ package com.example.todolist.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +15,9 @@ import com.example.todolist.model.UserList
 import com.example.todolist.repository.HomeRepository
 import com.example.todolist.utils.AvatarUtils
 import com.google.firebase.auth.FirebaseAuth
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
@@ -36,7 +38,7 @@ class HomeActivity : AppCompatActivity() {
         setupClickListeners()
     }
 
-    fun setupClickListeners(){
+    private fun setupClickListeners(){
         binding.apply {
             // Set up edit profile button click
             editProfile.setOnClickListener {
@@ -50,7 +52,7 @@ class HomeActivity : AppCompatActivity() {
 
             // set up add task button click
             addTaskButton.setOnClickListener {
-//            startActivity(Intent(this, AddTaskActivity::class.java))
+                startActivity(Intent(this@HomeActivity, AddTaskActivity::class.java))
             }
         }
     }
@@ -77,7 +79,6 @@ class HomeActivity : AppCompatActivity() {
 //    ========================================
     private fun getUserLists() {
         homeRepository.getUserLists { lists ->
-            Log.i("Lists", "Lists: $lists")
             updateListsUI(lists)
         }
     }
@@ -92,7 +93,7 @@ class HomeActivity : AppCompatActivity() {
                         val position = adapterPosition
                         if (position != RecyclerView.NO_POSITION) {
                             val clickedList = lists[position]
-                            redirectToTasksList(clickedList.id)
+                            redirectToTasksList(clickedList.id, clickedList.name)
                         }
                     }
                 }
@@ -116,9 +117,10 @@ class HomeActivity : AppCompatActivity() {
         binding.listsRecyclerView.adapter = adapter
     }
 
-    private fun redirectToTasksList(id: String){
+    private fun redirectToTasksList(id: String, listName: String){
         val intent = Intent(this, TasksActivity::class.java)
-        intent.putExtra("ListId", id)
+        intent.putExtra("listId", id)
+        intent.putExtra("listName", listName)
         startActivity(intent)
     }
 
@@ -142,11 +144,16 @@ class HomeActivity : AppCompatActivity() {
             }
 
             override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                val dateFormat = SimpleDateFormat("EEE, dd MMM", Locale.getDefault())
                 val task = tasks[position]
                 (holder as TaskViewHolder).binding.apply {
-                    taskTitleText.text = task.name
-                    taskDateText.text = task.date
+                    taskTitleText.text = task.title
                     descTask.text = task.description
+                    val date = task.date
+                    if (date != null){
+                        val formattedDate = Date(date * 1000)
+                        taskDateText.text = dateFormat.format(formattedDate)
+                    }
                 }
             }
 

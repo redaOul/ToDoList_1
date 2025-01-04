@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import com.example.todolist.activity.AddTaskActivity
 import com.example.todolist.activity.AuthActivity
 import com.example.todolist.databinding.ActivityUserDetailsBinding
 import com.google.firebase.Firebase

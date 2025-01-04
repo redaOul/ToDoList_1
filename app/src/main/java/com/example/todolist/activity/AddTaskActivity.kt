@@ -14,7 +14,6 @@ import com.example.todolist.model.Task
 import com.example.todolist.model.UserList
 import com.example.todolist.repository.ListsRepository
 import com.example.todolist.repository.TasksRepository
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -111,22 +110,25 @@ class AddTaskActivity : AppCompatActivity() {
                 binding.taskTitleLayout.error = null // Clear the error if valid
             }
 
-            // Convert deadline string to Date
-            val deadlineDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(deadline)
+            try {
+                val deadlineDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(deadline)
 
-            // Check if the parsing was successful
-            if (deadlineDate != null) {
-                // Convert the Date to Firebase Timestamp
-                val deadlineTimestamp = Timestamp(deadlineDate)
+                if (deadlineDate != null) {
+                    val deadlineTimestamp = deadlineDate.time / 1000
 
-                // Create a Task object with the timestamp
-                val task = Task(title = title, date = deadlineTimestamp, listId = listId ?: "", description = description)
+                    val task = Task(
+                        title = title,
+                        date = deadlineTimestamp,
+                        listId = listId ?: "",
+                        description = description
+                    )
 
-                // Save the task to Firebase
-                saveTask(task)
-            } else {
-                // If the date was invalid, show an error (this should not happen if the user selected a valid date)
-                Log.e("Add task", "Invalid deadline date format")
+                    saveTask(task)
+                } else {
+                    Log.e("AddTask", "Invalid deadline date format")
+                }
+            } catch (e: Exception) {
+                Log.e("AddTask", "Error parsing deadline: ${e.message}")
             }
         }
     }
@@ -149,6 +151,5 @@ class AddTaskActivity : AppCompatActivity() {
         binding.descriptionInput.text?.clear()
 
         // alert the success of operation
-        Log.d("Add task", "Task added successfully")
     }
 }

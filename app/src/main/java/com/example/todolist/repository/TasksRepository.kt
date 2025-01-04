@@ -28,7 +28,13 @@ class TasksRepository (private val auth: FirebaseAuth){
                         tasks.add(it)
                     }
                 }
-                callback(tasks)
+
+                val currentTimestampInSeconds = System.currentTimeMillis() / 1000
+                val upcomingTasks = tasks.filter { task ->
+                    task.date!! >= currentTimestampInSeconds
+                }.sortedBy { it.date }
+
+                callback(upcomingTasks)
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -46,7 +52,7 @@ class TasksRepository (private val auth: FirebaseAuth){
                 onResult(true)
             }
             .addOnFailureListener {
-                onResult(true)
+                onResult(false)
             }
     }
 }

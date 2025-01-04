@@ -10,10 +10,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class HomeRepository (private val auth: FirebaseAuth) {
-    private val database = FirebaseDatabase.getInstance("https://todolistv0-default-rtdb.europe-west1.firebasedatabase.app/")
+    private val database =
+        FirebaseDatabase.getInstance("https://todolistv0-default-rtdb.europe-west1.firebasedatabase.app/")
     private val user = auth.currentUser ?: throw SecurityException("User not authenticated")
 
-    fun getUserDetails(callback: (String?, String?, String?) -> Unit){
+    fun getUserDetails(callback: (String?, String?, String?) -> Unit) {
         val usersDetailsRef = database.getReference("usersDetails").child(user.uid)
 
         usersDetailsRef.addValueEventListener(object : ValueEventListener {
@@ -64,7 +65,12 @@ class HomeRepository (private val auth: FirebaseAuth) {
                         tasks.add(it)
                     }
                 }
-                callback(tasks)
+                val currentTimestampInSeconds = System.currentTimeMillis() / 1000
+                val upcomingTasks = tasks.filter { task ->
+                    task.date!! >= currentTimestampInSeconds
+                }.sortedBy { it.date }.take(10)
+
+                callback(upcomingTasks)
             }
 
             override fun onCancelled(error: DatabaseError) {
