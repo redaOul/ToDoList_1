@@ -141,7 +141,7 @@ class AuthRepository(private val auth: FirebaseAuth) {
         }
     }
 
-    private fun getCurrentUser() = auth.currentUser
+    fun getCurrentUser() = auth.currentUser
 
     private fun handleFirebaseException(exception: Exception?): String {
         // password and email exception generate own message not the customized one
