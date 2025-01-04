@@ -60,8 +60,8 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    implementation("com.google.android.material:material:1.9.0")
-    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("com.google.android.material:material")
+    implementation("androidx.cardview:cardview")
 
     // Firebase BoM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))

@@ -42,7 +42,7 @@ class HomeActivity : AppCompatActivity() {
         binding.apply {
             // Set up edit profile button click
             editProfile.setOnClickListener {
-//            startActivity(Intent(this, EditProfileActivity::class.java))
+                startActivity(Intent(this@HomeActivity, EditProfileActivity::class.java))
             }
 
             // set up see all lists button click
