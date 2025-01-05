@@ -2,11 +2,13 @@ package com.example.todolist.repository
 
 import android.util.Log
 import com.example.todolist.model.Task
+import com.example.todolist.model.TaskStatus
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+
 
 class TasksRepository (private val auth: FirebaseAuth){
     private val database = FirebaseDatabase.getInstance("https://todolistv0-default-rtdb.europe-west1.firebasedatabase.app/")
@@ -29,10 +31,7 @@ class TasksRepository (private val auth: FirebaseAuth){
                     }
                 }
 
-                val currentTimestampInSeconds = System.currentTimeMillis() / 1000
-                val upcomingTasks = tasks.filter { task ->
-                    task.date!! >= currentTimestampInSeconds
-                }.sortedBy { it.date }
+                val upcomingTasks = tasks.sortedWith( compareBy<Task> { it.status }.thenBy { it.date } )
 
                 callback(upcomingTasks)
             }
@@ -44,7 +43,7 @@ class TasksRepository (private val auth: FirebaseAuth){
     }
 
     fun addTask(task: Task, onResult: (Boolean) -> Unit){
-        val newTask = task.copy(userId = user.uid)
+        val newTask = task.copy(userId = user.uid, status = TaskStatus.UPCOMING)
         val tasksRef = database.getReference("tasks")
 
         tasksRef.push().setValue(newTask)
@@ -55,4 +54,38 @@ class TasksRepository (private val auth: FirebaseAuth){
                 onResult(false)
             }
     }
+
+    fun completeTask(taskId: String) {
+        val taskUpdates = mapOf(
+            "status" to TaskStatus.COMPLETED,
+            "completedAt" to System.currentTimeMillis()
+        )
+        val tasksRef = database.getReference("tasks")
+        tasksRef.child(taskId).updateChildren(taskUpdates)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Task successfully updated
+                    Log.d("TaskUpdate", "Task updated successfully.")
+                } else {
+                    // Handle the error
+                    Log.d("TaskUpdate", "Failed to update task.")
+                }
+            }
+    }
+
+    fun deleteTaskFromDatabase(taskId: String) {
+        val tasksRef = database.getReference("tasks")
+        tasksRef.child(taskId).removeValue()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Task successfully deleted
+                    Log.d("TaskDelete", "Task deleted successfully.")
+                } else {
+                    // Handle the error
+                    Log.d("TaskDelete", "Failed to delete task.")
+                }
+            }
+    }
+
+
 }

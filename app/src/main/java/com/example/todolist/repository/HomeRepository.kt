@@ -2,12 +2,15 @@ package com.example.todolist.repository
 
 import android.util.Log
 import com.example.todolist.model.Task
+import com.example.todolist.model.TaskStatus
 import com.example.todolist.model.UserList
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.time.LocalDate
+import java.time.ZoneId
 
 class HomeRepository (private val auth: FirebaseAuth) {
     private val database =
@@ -65,9 +68,12 @@ class HomeRepository (private val auth: FirebaseAuth) {
                         tasks.add(it)
                     }
                 }
-                val currentTimestampInSeconds = System.currentTimeMillis() / 1000
+
+                val currentDate = LocalDate.now() // gets the current date
+                val currentDateTimestamp = currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                 val upcomingTasks = tasks.filter { task ->
-                    task.date!! >= currentTimestampInSeconds
+                    task.date!! >= currentDateTimestamp
+                    task.status == TaskStatus.UPCOMING
                 }.sortedBy { it.date }.take(10)
 
                 callback(upcomingTasks)

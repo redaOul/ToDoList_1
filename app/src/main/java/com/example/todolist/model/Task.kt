@@ -6,5 +6,7 @@ data class Task(
     val description: String? = null, //
     var date: Long? = null, //
     val userId: String? = null, //
-    val listId: String? = null //
+    val listId: String? = null,
+    var status: TaskStatus = TaskStatus.UPCOMING,
+    var completedAt: Long? = null
 )

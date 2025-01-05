@@ -8,4 +8,18 @@
     <color name="purple">#8692f7</color>
     <color name="red_500">#EF5350</color>
     <color name="grey_500">#757575</color>
+
+    <color name="deep_blue">#253985</color>
+    <color name="sky_blue">#6B9CE7</color>
+    <color name="gray">#707070</color>
+
+    <color name="mint_cream">#F2FDF5</color>
+    <color name="forest_green">#306339</color>
+    <color name="light_green">#77DB89</color>
+    <color name="medium_green">#4EA356</color>
+
+    <color name="rose_white">#FCF2F2</color>
+    <color name="deep_red">#8C2822</color>
+    <color name="soft_red">#E77D79</color>
+    <color name="brick_red">#CA3A31</color>
 </resources>

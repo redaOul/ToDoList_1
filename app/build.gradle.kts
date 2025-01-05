@@ -68,7 +68,7 @@ dependencies {
 
     // Firebase features (no version numbers needed with BoM)
     implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.android.gms:play-services-auth") // I remove the version ctrl + z
+    implementation("com.google.android.gms:play-services-auth:21.3.0") // I remove the version ctrl + z
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-database-ktx")

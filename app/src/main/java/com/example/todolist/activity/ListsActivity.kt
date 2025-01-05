@@ -34,6 +34,7 @@ class ListsActivity : AppCompatActivity() {
 
     private fun setupClickListeners(){
         binding.apply {
+            // ToDo: button do not work
             backButton.setOnClickListener {
                 finish()
             }
