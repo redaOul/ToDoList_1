@@ -35,9 +35,9 @@ class HomeActivity : AppCompatActivity() {
         homeRepository = HomeRepository(FirebaseAuth.getInstance())
         tasksRepository = TasksRepository(FirebaseAuth.getInstance())
 
-        loadUserProfile()
-        getUserLists()
-        getUserTasks()
+        loadProfile()
+        getLists()
+        getTasks()
 
         setupClickListeners()
     }
@@ -64,7 +64,7 @@ class HomeActivity : AppCompatActivity() {
 //    ========================================
 //    first section logic
 //    ========================================
-    private fun loadUserProfile() {
+    private fun loadProfile() {
         homeRepository.getUserDetails { name, bio, avatar ->
             updateProfileUI(name, bio)
             AvatarUtils.loadAvatarIntoImageView(avatar, binding.profileImage)
@@ -81,7 +81,7 @@ class HomeActivity : AppCompatActivity() {
 //    ========================================
 //    second section logic
 //    ========================================
-    private fun getUserLists() {
+    private fun getLists() {
         homeRepository.getUserLists { lists ->
             updateListsUI(lists)
         }
@@ -102,6 +102,7 @@ class HomeActivity : AppCompatActivity() {
                     }
                 }
             }
+
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
                 val binding = ItemListCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 return ListViewHolder(binding)
@@ -131,51 +132,50 @@ class HomeActivity : AppCompatActivity() {
 //    ========================================
 //    third section logic
 //    ========================================
-    private fun getUserTasks() {
-        homeRepository.getUserTasks { tasks ->
-            updateUpComingTasksUI(tasks)
+    private fun getTasks(){
+        tasksRepository.getUpComingTasks { tasks ->
+            updateTasksUI(tasks)
         }
     }
 
-    private fun updateUpComingTasksUI(tasks: List<Task>) {
-        val adapter = TaskAdapter(
-            tasks = tasks.toMutableList(),
+    private fun updateTasksUI(tasks: List<Task>) {
+        val taskList = tasks.toMutableList()
+        adapter = TaskAdapter(
+            tasks = taskList,
             onTaskComplete = { position ->
-                val task = tasks[position]
+                val task = taskList[position]
+                tasksRepository.completeTask(task.taskId!!)
                 task.status = TaskStatus.COMPLETED
-                task.completedAt = System.currentTimeMillis() // Set the completed time
-                adapter.updateTask(position) // Update the task
-                tasksRepository.completeTask(task.taskId!!) // Update the task in the database
+                adapter.notifyItemChanged(position)
             },
             onTaskDelete = { position ->
-                val task = tasks[position]
-                adapter.removeTaskAt(position) // Remove the task from the adapter
-                tasksRepository.deleteTaskFromDatabase(task.taskId!!) // Delete the task from the database
+                val task = taskList[position]
+                tasksRepository.deleteTaskFromDatabase(task.taskId!!)
+                taskList.removeAt(position)
+                adapter.notifyItemRemoved(position)
             }
         )
 
         binding.tasksRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.tasksRecyclerView.adapter = adapter
 
-        val itemTouchHelper = ItemTouchHelper(
-            TaskSwipeCallback(
-                onSwipeLeft = { position ->
-                    val task = adapter.getTaskAt(position)
-                    val taskId = task.taskId ?: return@TaskSwipeCallback
+        val itemTouchHelper = ItemTouchHelper(TaskSwipeCallback(
+            onSwipeLeft = { position ->
+                val task = adapter.getTaskAt(position)
+                if (task.status != TaskStatus.COMPLETED) {
+                    tasksRepository.completeTask(task.taskId!!)
                     task.status = TaskStatus.COMPLETED
-                    task.completedAt = System.currentTimeMillis()
-                    adapter.updateTask(position)
-                    tasksRepository.completeTask(taskId)
-                },
-                onSwipeRight = { position ->
-                    val task = adapter.getTaskAt(position)
-                    val taskId = task.taskId ?: return@TaskSwipeCallback
-                    adapter.removeTaskAt(position)
-                    tasksRepository.deleteTaskFromDatabase(taskId)
-                },
-                taskList = tasks
-            )
-        )
+                    adapter.notifyItemChanged(position)
+                }
+            },
+            onSwipeRight = { position ->
+                val task = adapter.getTaskAt(position)
+                tasksRepository.deleteTaskFromDatabase(task.taskId!!)
+                taskList.removeAt(position)
+                adapter.notifyItemRemoved(position)
+            },
+            taskList = taskList
+        ))
         itemTouchHelper.attachToRecyclerView(binding.tasksRecyclerView)
     }
 }

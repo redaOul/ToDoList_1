@@ -1,10 +1,8 @@
 package com.example.todolist.adapter
 
-import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todolist.R
 import com.example.todolist.databinding.ItemTaskCardBinding
@@ -62,22 +60,10 @@ class TaskAdapter(
                     descCircle.setColorFilter(ContextCompat.getColor(root.context, R.color.soft_red))
                 }
             }
-
-            // ToDo: disable only swipe to left if task is completed
         }
     }
 
     override fun getItemCount(): Int = tasks.size
 
-    // Provide methods to get a task and remove a task by position
     fun getTaskAt(position: Int): Task = tasks[position]
-
-    fun removeTaskAt(position: Int) {
-        tasks.removeAt(position)
-        notifyItemRemoved(position)
-    }
-
-    fun updateTask(position: Int) {
-        notifyItemChanged(position)
-    }
 }

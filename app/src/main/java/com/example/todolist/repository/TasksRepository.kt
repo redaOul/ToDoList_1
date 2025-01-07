@@ -8,6 +8,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.time.LocalDate
+import java.time.ZoneId
 
 
 class TasksRepository (private val auth: FirebaseAuth){
@@ -16,7 +18,6 @@ class TasksRepository (private val auth: FirebaseAuth){
 
     fun getListTasks(listId: String, callback: (List<Task>) -> Unit) {
         val userTasksRef = database.getReference("tasks")
-
         val query = userTasksRef.orderByChild("listId").equalTo(listId)
 
         query.addValueEventListener(object : ValueEventListener {
@@ -42,6 +43,37 @@ class TasksRepository (private val auth: FirebaseAuth){
         })
     }
 
+    fun getUpComingTasks(callback: (List<Task>) -> Unit) {
+        val userTasksRef = database.getReference("tasks")
+        val query = userTasksRef.orderByChild("userId").equalTo(user.uid)
+
+        query.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val tasks = mutableListOf<Task>()
+                for (taskSnapshot in dataSnapshot.children) {
+                    val task = taskSnapshot.getValue(Task::class.java)
+                    val taskId = taskSnapshot.key
+                    task?.let {
+                        it.taskId = taskId ?: ""
+                        tasks.add(it)
+                    }
+                }
+
+                val currentDate = LocalDate.now() // gets the current date
+                val currentDateTimestamp = currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val upcomingTasks = tasks.filter { task ->
+                    task.date!! >= currentDateTimestamp
+                    task.status == TaskStatus.UPCOMING
+                }.sortedBy { it.date }
+
+                callback(upcomingTasks)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w("Firebase", "Failed to read value.", error.toException())
+            }
+        })
+    }
     fun addTask(task: Task, onResult: (Boolean) -> Unit){
         val newTask = task.copy(userId = user.uid, status = TaskStatus.UPCOMING)
         val tasksRef = database.getReference("tasks")

@@ -9,7 +9,7 @@ import com.example.todolist.model.TaskStatus
 class TaskSwipeCallback (
         private val onSwipeLeft: (Int) -> Unit,
         private val onSwipeRight: (Int) -> Unit,
-        private val taskList: List<Task>
+        private val taskList: MutableList<Task>
     ) : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
@@ -33,22 +33,20 @@ class TaskSwipeCallback (
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        val task = taskList[viewHolder.adapterPosition]
         when (direction) {
             ItemTouchHelper.LEFT -> {
+                val position = viewHolder.adapterPosition
+                val task = taskList[position]
                 if (task.status != TaskStatus.COMPLETED) {
-                    // Call the onSwipeLeft action only if task is not completed
-                } else {
-                    // If the task is completed, do not allow swipe left, restore the task
-                    viewHolder.itemView.isEnabled = false
+                    onSwipeLeft(position)
                 }
             }
             ItemTouchHelper.RIGHT -> {
-                // Call the onSwipeRight action to delete the task
                 onSwipeRight(viewHolder.adapterPosition)
             }
         }
     }
+
 
     override fun isItemViewSwipeEnabled(): Boolean {
         return true
