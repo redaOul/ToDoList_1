@@ -9,25 +9,38 @@ import com.example.todolist.databinding.ActivityAuthBinding
 import com.example.todolist.R
 import com.example.todolist.repository.AuthRepository
 import com.example.todolist.utils.ValidationUtils
-
 import com.google.firebase.auth.FirebaseAuth
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+
 
 class AuthActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAuthBinding
     private lateinit var authRepository: AuthRepository
+    private var isUserChecked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityAuthBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        // Initialize Firebase Auth
+        val splashScreen = installSplashScreen()
         authRepository = AuthRepository(FirebaseAuth.getInstance())
 
-        // Start with Sign In form
-        binding.viewFlipper.displayedChild = 0
+        splashScreen.setKeepOnScreenCondition { !isUserChecked }
+        checkUserAndRoute()
+
+        super.onCreate(savedInstanceState)
 
         setupClickListeners()
+    }
+
+    private fun checkUserAndRoute() {
+        isUserChecked = true
+        if (authRepository.getCurrentUser() != null) {
+            startActivity(Intent(this, HomeActivity::class.java))
+            finish()
+        } else {
+            binding = ActivityAuthBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            binding.viewFlipper.displayedChild = 0
+            // Your normal Activity1 initialization code here
+        }
     }
 
     private fun setupClickListeners() {
