@@ -36,9 +36,19 @@ class TasksActivity : AppCompatActivity() {
         listId = tmpListId.toString()
         listName = tmpListName.toString()
 
-        binding.listName.text = listName
+        binding.headerBar.setTitle(listName)
 
         getTasks()
+
+        setupClickListeners()
+    }
+
+    private fun setupClickListeners(){
+        binding.apply {
+            headerBar.setOnBackClickListener {
+                finish()
+            }
+        }
     }
 
     private fun getTasks(){

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.appbar.MaterialToolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/topAppBar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="@drawable/header_rounded15"
+    android:elevation="4dp"
+    android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+    app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Headline6">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="Go Back"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/round_chevron_left_24" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnPrimary" />
+
+</com.google.android.material.appbar.MaterialToolbar>

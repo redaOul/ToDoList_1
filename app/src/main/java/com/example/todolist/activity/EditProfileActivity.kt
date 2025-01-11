@@ -30,7 +30,8 @@ class EditProfileActivity : AppCompatActivity() {
         binding = ActivityEditProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize Firebase Auth
+        binding.headerBar.setTitle("Settings")
+
         editProfileRepository = EditProfileRepository(FirebaseAuth.getInstance())
 
         prepareFields()
@@ -40,13 +41,12 @@ class EditProfileActivity : AppCompatActivity() {
 
     private fun setupClickListeners(){
         binding.apply {
-            backButton.setOnClickListener {
+            headerBar.setOnBackClickListener {
                 finish()
             }
 
             saveButton.setOnClickListener {
                 saveProfile()
-//                finish()
             }
 
             signOutButton.setOnClickListener {

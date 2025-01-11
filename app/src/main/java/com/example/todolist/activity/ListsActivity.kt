@@ -25,6 +25,8 @@ class ListsActivity : AppCompatActivity() {
         binding = ActivityListsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.headerBar.setTitle("Lists")
+
         listsRepository = ListsRepository(FirebaseAuth.getInstance())
 
         getUserLists()
@@ -34,8 +36,7 @@ class ListsActivity : AppCompatActivity() {
 
     private fun setupClickListeners(){
         binding.apply {
-            // ToDo: button do not work
-            backButton.setOnClickListener {
+            headerBar.setOnBackClickListener {
                 finish()
             }
 

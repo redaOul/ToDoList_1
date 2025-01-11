@@ -28,6 +28,8 @@ class AddTaskActivity : AppCompatActivity() {
         binding = ActivityAddTaskBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.headerBar.setTitle("Add a task")
+
         listsRepository = ListsRepository(FirebaseAuth.getInstance())
         tasksRepository = TasksRepository(FirebaseAuth.getInstance())
 
@@ -89,8 +91,10 @@ class AddTaskActivity : AppCompatActivity() {
     }
 
     private fun setupBackButton() {
-        binding.backButton.setOnClickListener {
-            finish()
+        binding.apply {
+            headerBar.setOnBackClickListener {
+                finish()
+            }
         }
     }
 
