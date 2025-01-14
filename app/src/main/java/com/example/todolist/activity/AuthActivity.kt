@@ -84,7 +84,7 @@ class AuthActivity : AppCompatActivity() {
             }
 
             tvForgotPassword.setOnClickListener {
-                // Handle forgot password
+                redirectToPasswordReset()
             }
 
             btnGoogle.setOnClickListener {
@@ -155,9 +155,13 @@ class AuthActivity : AppCompatActivity() {
         }
     }
 
+    private fun redirectToPasswordReset(){
+        startActivity(Intent(this, ForgotPasswordActivity::class.java))
+    }
+
 
     private fun performGoogleSignIn() {
-        // Implement Google Sign In here
+        //
     }
 
     private fun redirectToUserDetails() {
