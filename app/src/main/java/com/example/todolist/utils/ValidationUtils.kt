@@ -4,59 +4,43 @@ import android.util.Patterns
 
 object ValidationUtils {
     // Centralized email validation
-    private fun validateEmail(email: String): Pair<Boolean, String?> {
+    fun validateEmail(email: String): Pair<Boolean, String?> {
         if (email.isEmpty()) return Pair(false, "Email cannot be empty")
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return Pair(false, "Email is not valid")
         return Pair(true, null)
     }
 
     // Centralized password validation
-    private fun validatePassword(password: String): Pair<Boolean, String?> {
+    fun validatePassword(password: String): Pair<Boolean, String?> {
         if (password.isEmpty()) return Pair(false, "Password cannot be empty")
+        if (password.length < 6) return Pair(false, "Password must be at least 6 characters long")
         return Pair(true, null)
     }
 
-    // Validation for sign-in inputs
-    fun validateSignInInput(email: String, password: String): Pair<Boolean, String?> {
-        validateEmail(email).let {
-            if (!it.first) return it
-        }
-        validatePassword(password).let {
-            if (!it.first) return it
-        }
-        return Pair(true, null)
-    }
-
-    // Validation for sign-up inputs
-    fun validateSignUpInput(name: String, email: String, password: String): Pair<Boolean, String?> {
+    // Centralized password validation
+    fun validateName(name: String): Pair<Boolean, String?> {
         if (name.isEmpty()) return Pair(false, "Name cannot be empty")
-        validateEmail(email).let {
-            if (!it.first) return it
-        }
-        validatePassword(password).let {
-            if (!it.first) return it
-        }
+        if (name.length >= 20) return Pair(false, "Name cannot be longer than 20 characters")
         return Pair(true, null)
     }
 
-    // format userName for avatar generation
-    fun formatUserNameForApi(fullName: String): String {
-        val nameParts = if (!fullName.contains(" ")) {
-            // If no spaces, attempt to split by uppercase letters (e.g., "RedaOul" → ["Reda", "Oul"])
-            fullName.split(Regex("(?=[A-Z])")).filter { it.isNotBlank() }
-        } else {
-            // If spaces are present, split by them
-            fullName.split(" ").filter { it.isNotBlank() }
-        }
-
-        // Capitalize each part and join with "+"
-        return nameParts.joinToString("+") { it.trim().replaceFirstChar { it.uppercase() } }
+    fun validateBio(bio: String): Pair<Boolean, String?> {
+        return if (bio.length >= 30) Pair(false, "Bio cannot be longer than 30 characters") else Pair(true, null)
     }
 
-    // validation for adding a list
+    fun validatePasswordsMatch(oldPassword: String, newPassword: String): Pair<Boolean, String?> {
+        return if (oldPassword == newPassword) return Pair(true, "Passwords can not match") else Pair(false, null)
+    }
+
+    fun validatePasswordConfirmation(newPassword: String, confirmPassword: String): Pair<Boolean, String?> {
+        if (confirmPassword.isEmpty()) return Pair(false, "Password confirmation cannot be empty")
+        if (newPassword != confirmPassword) return Pair(false, "Password is not confirmed")
+        return Pair(true, null)
+    }
+
     fun validateAddListInput(name: String): Pair<Boolean, String?>{
         if (name.isEmpty()) return Pair(false, "Name cannot be empty")
         if (name.length >= 20) return Pair(false, "Name cannot be longer than 20 characters")
-        else return Pair(true, null)
+        return Pair(true, null)
     }
 }

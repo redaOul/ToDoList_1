@@ -25,7 +25,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginStart="20dp"
-                android:src="@drawable/ic_launcher_background"
+                android:src="@drawable/baseline_account_circle_96"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -71,7 +71,7 @@
                 android:contentDescription="edit profile"
                 android:padding="0dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/round_create_24"
+                android:src="@drawable/round_settings_24"
                 app:layout_constraintTop_toTopOf="@+id/userName"
                 app:layout_constraintBottom_toBottomOf="@+id/userName"
                 app:layout_constraintEnd_toEndOf="parent"  />
@@ -132,8 +132,7 @@
                 android:layout_height="wrap_content"
                 android:paddingVertical="8dp"
                 android:clipToPadding="false"
-                android:scrollbars="vertical"
-                tools:listitem="@layout/item_list_card" />
+                android:scrollbars="vertical" />
 
         </LinearLayout>
 
@@ -165,17 +164,6 @@
                 android:textStyle="bold"
                 tools:ignore="MissingConstraints" />
 
-            <TextView
-                android:id="@+id/filterButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="-----"
-                android:textColor="@color/grey_500"
-                android:textSize="16sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -184,8 +172,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingHorizontal="22dp"
-            android:scrollbars="vertical"
-            tools:listitem="@layout/item_task_card"/>
+            android:scrollbars="vertical"/>
 
     </LinearLayout>
 
@@ -194,13 +181,13 @@
         android:id="@+id/addTaskButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="#F05454"
+        android:backgroundTint="@color/red_500"
         android:layout_marginHorizontal="20dp"
         android:padding="12dp"
         android:text="Add a task"
         android:textColor="@android:color/white"
         android:textSize="18sp"
-        app:cornerRadius="12dp"
+        app:cornerRadius="16dp"
         android:layout_marginBottom="10dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 

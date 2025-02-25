@@ -4,17 +4,19 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.todolist.R
 import com.example.todolist.databinding.ActivityEditProfileBinding
 import com.example.todolist.repository.EditProfileRepository
-import com.google.android.material.textfield.TextInputLayout
+import com.example.todolist.utils.ValidationUtils
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EditProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditProfileBinding
@@ -23,7 +25,12 @@ class EditProfileActivity : AppCompatActivity() {
     // Store original values to compare against
     private var originalUsername = ""
     private var originalBio = ""
+    private var isUsernameModified = false
+    private var isBioModified = false
     private var isPasswordModified = false
+
+    private var fieldsUpdated = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +49,7 @@ class EditProfileActivity : AppCompatActivity() {
     private fun setupClickListeners(){
         binding.apply {
             headerBar.setOnBackClickListener {
-                finish()
+                handleBackPress()
             }
 
             saveButton.setOnClickListener {
@@ -59,16 +66,22 @@ class EditProfileActivity : AppCompatActivity() {
         editProfileRepository.getUserDetails { name, bio ->
             originalUsername = name.toString()
             originalBio = bio.toString()
-            updateFieldsUI(name, bio)
+
+            binding.apply {
+                usernameInput.setText(name)
+                bioInput.setText(bio)
+            }
         }
-        updateSaveButtonState(false)
     }
 
-    private fun updateFieldsUI(name: String?, bio: String?){
-        binding.apply {
-            usernameInput.setText(name)
-            bioInput.setText(bio)
+    private fun handleBackPress() {
+        if (fieldsUpdated) {
+            val intent = Intent(this@EditProfileActivity, HomeActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
         }
+
+        finish()
     }
 
     private fun setupTextWatchers() {
@@ -91,98 +104,158 @@ class EditProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun validateInputs() {
-        val isUsernameModified = binding.usernameInput.text.toString() != originalUsername
-        val isBioModified = binding.bioInput.text.toString() != originalBio &&
-                binding.bioInput.text.toString().length <= 30 // Bio character limit
-        val isPasswordMatching = binding.newPasswordInput.text.toString() ==
-                binding.confirmPasswordInput.text.toString()
-        val isPasswordDifferent = binding.oldPasswordInput.text.toString() !=
-                binding.newPasswordInput.text.toString()
-        val isPasswordNotEmpty = binding.oldPasswordInput.text.toString().isNotEmpty() &&
-                binding.newPasswordInput.text.toString().isNotEmpty()
-        val isPasswordLongEnough = binding.newPasswordInput.text.toString().length >= 6
-        val isNewPasswordNotEmpty = binding.newPasswordInput.text.toString().isNotEmpty()
-        val isConfirmPasswordNotEmpty = binding.confirmPasswordInput.text.toString().isNotEmpty()
+    private fun validateInputs(){
+        val username = binding.usernameInput.text.toString()
+        val bio = binding.bioInput.text.toString()
+        val oldPassword = binding.oldPasswordInput.text.toString()
+        val newPassword = binding.newPasswordInput.text.toString()
+        val confirmPassword = binding.confirmPasswordInput.text.toString()
 
-        if (binding.bioInput.text.toString().length > 30)
-            binding.bioLayout.error = "Bio must be less than 30 characters"
-        else
-            binding.bioLayout.error = null
+        isUsernameModified = username != originalUsername
+        isBioModified = bio != originalBio
+        isPasswordModified = oldPassword.isNotEmpty() || newPassword.isNotEmpty()
 
-        if (isConfirmPasswordNotEmpty && !isPasswordMatching) {
-            binding.confirmPasswordLayout.error = "Passwords do not match"
-            binding.confirmPasswordLayout.endIconMode = TextInputLayout.END_ICON_CUSTOM
-        } else {
-            binding.confirmPasswordLayout.error = null
-            binding.confirmPasswordLayout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
-        }
+        val isUserNameValid = isUserNameValid(username)
+        val isBioValid = isBioValid(bio)
+        val isPasswordValid = isPasswordValid(oldPassword, newPassword, confirmPassword)
 
-        if (isNewPasswordNotEmpty && !isPasswordDifferent) {
-            binding.newPasswordLayout.error = "New password must be different"
-            binding.newPasswordLayout.endIconMode = TextInputLayout.END_ICON_CUSTOM
-        } else if (!isPasswordLongEnough && binding.newPasswordInput.text.toString().isNotEmpty()) {
-            binding.newPasswordLayout.error = "Password must be at least 6 characters"
-            binding.newPasswordLayout.endIconMode = TextInputLayout.END_ICON_CUSTOM
-        } else {
-            binding.newPasswordLayout.error = null
-            binding.newPasswordLayout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
-        }
-
-        isPasswordModified = isPasswordNotEmpty && isPasswordDifferent && isPasswordMatching
-
-        val shouldEnableSave = isUsernameModified || isBioModified || isPasswordModified
+        val shouldEnableSave = (isUsernameModified || isBioModified || isPasswordModified) &&
+                isUserNameValid && isBioValid && isPasswordValid
 
         updateSaveButtonState(shouldEnableSave)
+    }
+
+    private fun isUserNameValid(username: String): Boolean {
+        if (!isUsernameModified) return true
+
+        val (isValid, message) = ValidationUtils.validateName(username)
+        binding.usernameLayout.error = if (isValid) null else message
+        return isValid
+    }
+
+    private fun isBioValid(bio: String): Boolean {
+        if (!isBioModified) return true
+
+        val (isValid, message) = ValidationUtils.validateBio(bio)
+        binding.bioLayout.error = if (isValid) null else message
+        return isValid
+    }
+
+    private fun isPasswordValid(oldPassword: String, newPassword: String, confirmPassword: String): Boolean {
+        binding.apply {
+            newPasswordLayout.error = null
+            newPasswordLayout.isErrorEnabled = false
+            confirmPasswordLayout.error = null
+            confirmPasswordLayout.isErrorEnabled = false
+        }
+
+        if (!isPasswordModified) return true
+
+        // Validate new password if provided
+        val (isNewPasswordValid, newPasswordError) = ValidationUtils.validatePassword(newPassword)
+        if (!isNewPasswordValid) {
+            binding.newPasswordLayout.error = newPasswordError
+            return false
+        }
+
+        // Validate new password do not match old password if provided
+        val (isPasswordsMatch, passwordMatchError) = ValidationUtils.validatePasswordsMatch(oldPassword, newPassword)
+        if (isPasswordsMatch) {
+            binding.newPasswordLayout.error = passwordMatchError
+            return false
+        }
+
+        // Validate confirm password if provided
+        val (isPasswordConfirmed, passwordConfirmationError) = ValidationUtils.validatePasswordConfirmation(newPassword, confirmPassword)
+        if (!isPasswordConfirmed) {
+            binding.confirmPasswordLayout.error = passwordConfirmationError
+            return false
+        }
+
+        return true
     }
 
     private fun updateSaveButtonState(isEnabled: Boolean) {
         binding.saveButton.isEnabled = isEnabled
 
-        if (isEnabled)
-            binding.saveButton.backgroundTintList = ContextCompat.getColorStateList(this, R.color.red_500)
-        else
-            binding.saveButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.darker_gray)
+        binding.saveButton.backgroundTintList = ContextCompat.getColorStateList(
+            this,
+            if (isEnabled) R.color.red_500 else android.R.color.darker_gray
+        )
     }
 
     private fun saveProfile(){
-        var userNameUpdated = false
-        var userBioUpdated = false
-        var passwordUpdated = false
         CoroutineScope(Dispatchers.IO).launch {
-            val username = binding.usernameInput.text.toString()
-            if (username != originalUsername) {
-                userNameUpdated = editProfileRepository.updateUserName(username)
-            }
-            val bio = binding.bioInput.text.toString()
-            if (bio != originalBio) {
-                userBioUpdated = editProfileRepository.updateUserBio(bio)
-            }
-            if (isPasswordModified) {
-                val oldPassword = binding.oldPasswordInput.text.toString()
-                val newPassword = binding.newPasswordInput.text.toString()
-                val passwordChecked = editProfileRepository.checkOldPassword(oldPassword)
-                if (!passwordChecked){
-                    Log.d("EditProfile", "Old password is incorrect")
-                    return@launch
-                } else {
-                    passwordUpdated = editProfileRepository.updatePassword(newPassword)
+            try {
+                var userNameUpdated = false
+                var userBioUpdated = false
+                var passwordUpdated = false
+                val username = binding.usernameInput.text.toString()
+                if (username != originalUsername) {
+                    userNameUpdated = editProfileRepository.updateUserName(username)
+                }
+
+                val bio = binding.bioInput.text.toString()
+                if (bio != originalBio) {
+                    userBioUpdated = editProfileRepository.updateUserBio(bio)
+                }
+
+                if (isPasswordModified) {
+                    val oldPassword = binding.oldPasswordInput.text.toString()
+                    val newPassword = binding.newPasswordInput.text.toString()
+                    val passwordChecked = editProfileRepository.checkOldPassword(oldPassword)
+
+                    if (!passwordChecked){
+                        withContext(Dispatchers.Main) {
+                            showSnackBar("Incorrect old password", false)
+                        }
+                    } else {
+                        passwordUpdated = editProfileRepository.updatePassword(newPassword)
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (userNameUpdated) originalUsername = username
+                    if (userBioUpdated) originalBio = bio
+                    if (passwordUpdated) isPasswordModified = false
+
+                    // Re-validate inputs to disable the save button if no changes remain
+                    validateInputs()
+
+                    if (userNameUpdated) showSnackBar("Name updated successfully")
+                    if (userBioUpdated) showSnackBar("Bio updated successfully")
+                    if (passwordUpdated) showSnackBar("Password updated successfully")
+                }
+
+                fieldsUpdated = true
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showSnackBar("An error occurred while saving changes", false)
                 }
             }
-
-            if (userNameUpdated) Log.d("EditProfile", "User name updated")
-            else Log.d("EditProfile", "User name not updated")
-
-            if (userBioUpdated) Log.d("EditProfile", "User bio updated")
-            else Log.d("EditProfile", "User bio not updated")
-
-            if (passwordUpdated) Log.d("EditProfile", "User password updated")
-            else Log.d("EditProfile", "User password not updated")
-
-            val intent = Intent(this@EditProfileActivity, HomeActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
         }
+    }
+
+    private suspend fun showSnackBar(message: String, state: Boolean = true) {
+        val textColor: Int
+        val backgroundColor: Int
+
+        if (state){
+            textColor = ContextCompat.getColor(this, R.color.medium_green)
+            backgroundColor = ContextCompat.getColor(this, R.color.mint_cream)
+        } else {
+            textColor = ContextCompat.getColor(this, R.color.deep_red)
+            backgroundColor = ContextCompat.getColor(this, R.color.rose_white)
+        }
+
+        val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE).apply {
+            setTextColor(textColor)
+            setBackgroundTint(backgroundColor)
+            show()
+        }
+
+        delay(1400)
+        snackBar.dismiss()
     }
 
     private fun performSignOut(){

@@ -2,17 +2,16 @@ package com.example.todolist.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.todolist.R
+import com.example.todolist.adapter.ListAdapter
 import com.example.todolist.databinding.ActivityListsBinding
-import com.example.todolist.databinding.ItemListCardBinding
 import com.example.todolist.model.UserList
 import com.example.todolist.repository.ListsRepository
 import com.example.todolist.utils.ValidationUtils
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 
 class ListsActivity : AppCompatActivity() {
@@ -47,8 +46,7 @@ class ListsActivity : AppCompatActivity() {
                 if (isValid) {
                     performAddList(name)
                 } else {
-                    // Handle invalid input via alert message
-                    Log.d("Lists", "$error")
+                    showSnackBar("$error", false)
                 }
             }
         }
@@ -57,12 +55,9 @@ class ListsActivity : AppCompatActivity() {
     private fun performAddList(name: String) {
         listsRepository.addList(name) { success, message ->
             if (success) {
-                // success alert message
-//                    binding.result.text = error
-                Log.d("Lists", "List added successfully")
+                showSnackBar("$message", )
             } else {
-                // failed alert message
-                Log.d("Lists", "$message")
+                showSnackBar("$message", false)
             }
         }
     }
@@ -74,35 +69,21 @@ class ListsActivity : AppCompatActivity() {
     }
 
     private fun updateListsUI(lists: List<UserList>) {
-        val adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-            inner class ListViewHolder(val binding: ItemListCardBinding) : RecyclerView.ViewHolder(binding.root) {
-                init {
-                    // Set click listener in the ViewHolder initialization
-                    itemView.setOnClickListener {
-                        val position = adapterPosition
-                        if (position != RecyclerView.NO_POSITION) {
-                            val clickedList = lists[position]
-                            redirectToTasksList(clickedList.id, clickedList.name)
-                        }
+        val adapter = ListAdapter(
+            lists = lists,
+            onItemClick = { clickedList ->
+                redirectToTasksList(clickedList.id, clickedList.name)
+            },
+            onDeleteList = { listId ->
+                listsRepository.deleteListAndItsTasks(listId) { success, message ->
+                    if (success) {
+                        showSnackBar(message)
+                    } else {
+                        showSnackBar(message, false)
                     }
                 }
             }
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-                val binding = ItemListCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                return ListViewHolder(binding)
-            }
-
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                val list = lists[position]
-                (holder as ListViewHolder).binding.apply {
-                    listName.text = list.name
-                }
-            }
-
-            override fun getItemCount(): Int = lists.size
-        }
-
+        )
         binding.listsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.listsRecyclerView.adapter = adapter
     }
@@ -112,5 +93,24 @@ class ListsActivity : AppCompatActivity() {
         intent.putExtra("listId", id)
         intent.putExtra("listName", listName)
         startActivity(intent)
+    }
+
+    private fun showSnackBar(message: String, state: Boolean = true) {
+        val textColor: Int
+        val backgroundColor: Int
+
+        if (state){
+            textColor = ContextCompat.getColor(this, R.color.medium_green)
+            backgroundColor = ContextCompat.getColor(this, R.color.mint_cream)
+        } else {
+            textColor = ContextCompat.getColor(this, R.color.deep_red)
+            backgroundColor = ContextCompat.getColor(this, R.color.rose_white)
+        }
+
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).apply {
+            setTextColor(textColor)
+            setBackgroundTint(backgroundColor)
+            show()
+        }
     }
 }

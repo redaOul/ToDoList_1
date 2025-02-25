@@ -32,15 +32,56 @@ class ListsRepository (private val auth: FirebaseAuth){
         })
     }
 
+    fun getUserLists(callback: (List<UserList>) -> Unit) {
+        val userListsRef = database.getReference("lists").child(user.uid)
+
+        userListsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val lists = dataSnapshot.children.take(3).map { listSnapshot ->
+                    val listKey = listSnapshot.key
+                    val listName = listSnapshot.getValue(String::class.java)
+                    UserList(listKey ?: "", listName ?: "")
+                }
+                callback(lists)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w("Firebase", "Failed to read value.", error.toException())
+            }
+        })
+    }
+
     fun addList(listName: String, onResult: (Boolean, String?) -> Unit) {
         val userListsRef = database.getReference("lists").child(user.uid)
         userListsRef.push().setValue(listName)
             .addOnSuccessListener {
-//                    callback(listKey)
-                onResult(true, "SignUp succeeded")
+                onResult(true, "List added successfully")
             }
             .addOnFailureListener {
                 onResult(false,"Failed to add list")
             }
+    }
+
+    fun deleteListAndItsTasks(listId: String, onResult: (Boolean, String) -> Unit) {
+        val tasksRef = database.getReference("tasks")
+        val listsRef = database.getReference("lists").child(user.uid)
+
+        tasksRef.orderByChild("listId").equalTo(listId).get().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val snapshot = task.result
+                if (snapshot != null && snapshot.exists()) {
+                    for (childSnapshot in snapshot.children) {
+                        childSnapshot.ref.removeValue()
+                    }
+                }
+
+                listsRef.child(listId).removeValue().addOnCompleteListener {
+                    if (it.isSuccessful)
+                        onResult(true, "List deleted successfully")
+                }
+            }
+
+            onResult(false, "Operation Failed")
+        }
     }
 }

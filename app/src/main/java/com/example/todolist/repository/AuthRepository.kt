@@ -1,12 +1,9 @@
 package com.example.todolist.repository
 
-import android.widget.Toast
 import com.example.todolist.utils.AvatarUtils
-import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
 class AuthRepository(private val auth: FirebaseAuth) {
     private val database = FirebaseDatabase.getInstance("https://todolistv0-default-rtdb.europe-west1.firebasedatabase.app/")
 
@@ -23,7 +19,7 @@ class AuthRepository(private val auth: FirebaseAuth) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    onResult(true, "SignIn succeed")
+                    onResult(true, null)
                 } else {
                     onResult(false, handleFirebaseException(task.exception))
                 }
@@ -42,7 +38,7 @@ class AuthRepository(private val auth: FirebaseAuth) {
             val defaultListAdded = addDefaultTaskList()
 
             if (profileUpdated && defaultListAdded) {
-                withContext(Dispatchers.Main) { onResult(true, "Sign-up succeeded") }
+                withContext(Dispatchers.Main) { onResult(true, null) }
             } else {
                 withContext(Dispatchers.Main) { onResult(false, "Failed to complete sign-up process") }
             }
@@ -66,7 +62,6 @@ class AuthRepository(private val auth: FirebaseAuth) {
                 .build()
             user.updateProfile(profileUpdates).await()
 
-            // Add avatar and bio
             val userDetails = hashMapOf(
                 "bio" to "Update your bio...",
                 "avatar" to AvatarUtils.getAvatarApiUrl(name)
@@ -99,7 +94,7 @@ class AuthRepository(private val auth: FirebaseAuth) {
                 if (task.isSuccessful) {
                     onResult(true, null)
                 } else {
-                    onResult(false, task.exception.toString())
+                    onResult(false, handleFirebaseException(task.exception))
                 }
             }
     }
@@ -107,12 +102,11 @@ class AuthRepository(private val auth: FirebaseAuth) {
     fun getCurrentUser() = auth.currentUser
 
     private fun handleFirebaseException(exception: Exception?): String {
-        // password and email exception generate own message not the customized one
         return when (exception) {
             is FirebaseAuthInvalidCredentialsException -> "Bad credentials"
             is FirebaseAuthUserCollisionException -> "Email already in use"
-            is FirebaseAuthWeakPasswordException -> "Password too weak"
-            else -> "An unexpected error occurred :(\nPlease try again later"
+//            else -> "An unexpected error occurred :(\nPlease try again later"
+            else -> exception.toString()
         }
     }
 }

@@ -1,9 +1,9 @@
 package com.example.todolist.activity
 
 import android.content.Intent
-import android.content.res.ColorStateList
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.core.content.ContextCompat
 import com.example.todolist.databinding.ActivityAuthBinding
 import com.example.todolist.R
@@ -19,15 +19,12 @@ class AuthActivity : AppCompatActivity() {
     private var isUserChecked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         val splashScreen = installSplashScreen()
         authRepository = AuthRepository(FirebaseAuth.getInstance())
 
         splashScreen.setKeepOnScreenCondition { !isUserChecked }
         checkUserAndRoute()
-
-        super.onCreate(savedInstanceState)
-
-        setupClickListeners()
     }
 
     private fun checkUserAndRoute() {
@@ -38,100 +35,106 @@ class AuthActivity : AppCompatActivity() {
         } else {
             binding = ActivityAuthBinding.inflate(layoutInflater)
             setContentView(binding.root)
-            binding.viewFlipper.displayedChild = 0
-            // Your normal Activity1 initialization code here
+            binding.signInForm.visibility = View.VISIBLE
+            setupClickListeners()
         }
     }
 
     private fun setupClickListeners() {
-        // clear result text after switching
         binding.apply {
             // Switch to sign in form
             btnSignIn.setOnClickListener {
-                viewFlipper.displayedChild = 0
-                updateTabButtons(isSignIn = true)
+                signInForm.visibility = View.VISIBLE
+                signUpForm.visibility = View.GONE
+                updateTabButtons(true)
             }
 
             // Switch to sign up form
             btnSignUp.setOnClickListener {
-                viewFlipper.displayedChild = 1
-                updateTabButtons(isSignIn = false)
+                signUpForm.visibility = View.VISIBLE
+                signInForm.visibility = View.GONE
+                updateTabButtons(false)
             }
 
             btnLoginSignIn.setOnClickListener {
-                val email = etEmailSignIn.text.toString()
-                val password = etPasswordSignIn.text.toString()
-
-                val (isValid, error) = ValidationUtils.validateSignInInput(email, password)
-                if (isValid) {
-                    performSignIn(email, password)
-                } else {
-                    binding.result.text = error
-                }
+                signInProcess()
             }
 
             btnRegister.setOnClickListener {
-                val name = etFullName.text.toString()
-                val email = etEmailSignUp.text.toString()
-                val password = etPasswordSignUp.text.toString()
-
-                val (isValid, error) = ValidationUtils.validateSignUpInput(name, email, password)
-                if (isValid) {
-                    performSignUp(name, email, password)
-                } else {
-                    binding.result.text = error
-                }
+                signUpProcess()
             }
 
             tvForgotPassword.setOnClickListener {
                 redirectToPasswordReset()
             }
-
-            btnGoogle.setOnClickListener {
-                performGoogleSignIn()
-            }
         }
     }
 
     private fun updateTabButtons(isSignIn: Boolean) {
+        val red500 = ContextCompat.getColorStateList(this@AuthActivity, R.color.red_500)
+        val white = ContextCompat.getColorStateList(this@AuthActivity, R.color.white)
+
         binding.apply {
             if (isSignIn) {
                 // Unselected: Sign Up button
-                btnSignUp.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.white
-                ))
-                btnSignUp.setTextColor(ContextCompat.getColor(this@AuthActivity, R.color.red_500))
-                btnSignUp.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.red_500
-                ))
+                btnSignUp.backgroundTintList = white
+                btnSignUp.setTextColor(red500)
 
                 // Selected: Sign In button
-                btnSignIn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.red_500
-                ))
-                btnSignIn.setTextColor(ContextCompat.getColor(this@AuthActivity, R.color.white))
-                btnSignIn.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.red_500
-                ))
+                btnSignIn.backgroundTintList = red500
+                btnSignIn.setTextColor(white)
+
+                // clear input fields and errors
+                emailSignInLayout.error = null
+                emailSignInLayout.isErrorEnabled = false
+                emailSignInText.text = null
+                passwordSignInLayout.error = null
+                passwordSignInLayout.isErrorEnabled = false
+                passwordSignInText.text = null
             } else {
                 // Unselected: Sign In button
-                btnSignIn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.white
-                ))
-                btnSignIn.setTextColor(ContextCompat.getColor(this@AuthActivity, R.color.red_500))
-                btnSignIn.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.red_500
-                ))
+                btnSignIn.backgroundTintList = white
+                btnSignIn.setTextColor(red500)
 
                 // Selected: Sign Up button
-                btnSignUp.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.red_500
-                ))
-                btnSignUp.setTextColor(ContextCompat.getColor(this@AuthActivity, R.color.white))
-                btnSignUp.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this@AuthActivity,
-                    R.color.red_500
-                ))
+                btnSignUp.backgroundTintList = red500
+                btnSignUp.setTextColor(white)
+
+                // clear input fields and errors
+                nameSignUpLayout.error = null
+                nameSignUpLayout.isErrorEnabled = false
+                nameSignUpText.text = null
+                emailSignUpLayout.error = null
+                emailSignUpLayout.isErrorEnabled = false
+                emailSignUpText.text = null
+                passwordSignUpLayout.error = null
+                passwordSignUpLayout.isErrorEnabled = false
+                passwordSignUpText.text = null
             }
+
+            result.text = ""
+            result.visibility = View.GONE
+        }
+    }
+
+    private fun signInProcess() {
+        val email = binding.emailSignInText.text.toString()
+        val password = binding.passwordSignInText.text.toString()
+
+        val (isEmailValid, emailError) = ValidationUtils.validateEmail(email)
+        if (!isEmailValid) {
+            binding.emailSignInLayout.error = emailError
+        }
+
+        val (isPasswordValid, passwordError) = ValidationUtils.validatePassword(password)
+        if (!isPasswordValid) {
+            binding.passwordSignInLayout.error = passwordError
+        }
+
+        if (isEmailValid && isPasswordValid) {
+            binding.emailSignInLayout.error = null
+            binding.passwordSignInLayout.error = null
+            performSignIn(email, password)
         }
     }
 
@@ -140,8 +143,37 @@ class AuthActivity : AppCompatActivity() {
             if (success) {
                 redirectToUserDetails()
             } else {
+                binding.result.visibility = View.VISIBLE
                 binding.result.text = message
             }
+        }
+    }
+
+    private fun signUpProcess(){
+        val name = binding.nameSignUpText.text.toString()
+        val email = binding.emailSignUpText.text.toString()
+        val password = binding.passwordSignUpText.text.toString()
+
+        val (isNameValid, nameError) = ValidationUtils.validateName(name)
+        if (!isNameValid) {
+            binding.nameSignUpLayout.error = nameError
+        }
+
+        val (isEmailValid, emailError) = ValidationUtils.validateEmail(email)
+        if (!isEmailValid) {
+            binding.emailSignUpLayout.error = emailError
+        }
+
+        val (isPasswordValid, passwordError) = ValidationUtils.validatePassword(password)
+        if (!isPasswordValid) {
+            binding.passwordSignUpLayout.error = passwordError
+        }
+
+        if (isNameValid && isEmailValid && isPasswordValid) {
+            binding.nameSignUpLayout.error = null
+            binding.emailSignUpLayout.error = null
+            binding.passwordSignUpLayout.error = null
+            performSignUp(name, email, password)
         }
     }
 
@@ -150,6 +182,7 @@ class AuthActivity : AppCompatActivity() {
             if (success) {
                 redirectToUserDetails()
             } else {
+                binding.result.visibility = View.VISIBLE
                 binding.result.text = message
             }
         }
@@ -157,11 +190,6 @@ class AuthActivity : AppCompatActivity() {
 
     private fun redirectToPasswordReset(){
         startActivity(Intent(this, ForgotPasswordActivity::class.java))
-    }
-
-
-    private fun performGoogleSignIn() {
-        //
     }
 
     private fun redirectToUserDetails() {

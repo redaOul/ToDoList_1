@@ -2,19 +2,17 @@ package com.example.todolist.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.todolist.adapter.ListAdapter
 import com.example.todolist.adapter.TaskAdapter
 import com.example.todolist.databinding.ActivityHomeBinding
-import com.example.todolist.databinding.ItemListCardBinding
 import com.example.todolist.model.Task
 import com.example.todolist.model.TaskStatus
 import com.example.todolist.model.UserList
 import com.example.todolist.repository.HomeRepository
+import com.example.todolist.repository.ListsRepository
 import com.example.todolist.repository.TasksRepository
 import com.example.todolist.utils.AvatarUtils
 import com.example.todolist.utils.TaskSwipeCallback
@@ -23,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var homeRepository: HomeRepository
+    private lateinit var listsRepository: ListsRepository
     private lateinit var tasksRepository: TasksRepository
     private lateinit var adapter: TaskAdapter
 
@@ -31,8 +30,8 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize Firebase Auth
         homeRepository = HomeRepository(FirebaseAuth.getInstance())
+        listsRepository = ListsRepository(FirebaseAuth.getInstance())
         tasksRepository = TasksRepository(FirebaseAuth.getInstance())
 
         loadProfile()
@@ -82,42 +81,18 @@ class HomeActivity : AppCompatActivity() {
 //    second section logic
 //    ========================================
     private fun getLists() {
-        homeRepository.getUserLists { lists ->
+        listsRepository.getUserLists { lists ->
             updateListsUI(lists)
         }
     }
 
     private fun updateListsUI(lists: List<UserList>) {
-        val adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-            inner class ListViewHolder(val binding: ItemListCardBinding) : RecyclerView.ViewHolder(binding.root) {
-                init {
-                    // Set click listener in the ViewHolder initialization
-                    itemView.setOnClickListener {
-                        val position = adapterPosition
-                        if (position != RecyclerView.NO_POSITION) {
-                            val clickedList = lists[position]
-                            redirectToTasksList(clickedList.id, clickedList.name)
-                        }
-                    }
-                }
-            }
-
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-                val binding = ItemListCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                return ListViewHolder(binding)
-            }
-
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                val list = lists[position]
-                (holder as ListViewHolder).binding.apply {
-                    listName.text = list.name
-                }
-            }
-
-            override fun getItemCount(): Int = lists.size
-        }
-
+        val adapter = ListAdapter(lists = lists,
+            onItemClick = { clickedList ->
+                redirectToTasksList(clickedList.id, clickedList.name)
+            },
+            onDeleteList = null
+        )
         binding.listsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.listsRecyclerView.adapter = adapter
     }
